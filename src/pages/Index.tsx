@@ -6,12 +6,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { IndianRupee, Receipt, QrCode, ThumbsUp } from "lucide-react";
+import { generateUPIQRString } from "@/utils/upiQRGenerator";
 
 const Index = () => {
   const [billAmount, setBillAmount] = useState<number>(0);
   const [tipAmount, setTipAmount] = useState<number>(0);
   const [waiterName, setWaiterName] = useState<string>("");
   const [showQR, setShowQR] = useState<boolean>(false);
+  const [qrCodeData, setQRCodeData] = useState<string>("");
+
+  // Restaurant's UPI details
+  const RESTAURANT_VPA = "restaurant@upi"; // Replace with actual UPI ID
+  const RESTAURANT_NAME = "Sample Restaurant"; // Replace with actual name
 
   const handleGenerateQR = () => {
     if (billAmount <= 0) {
@@ -23,6 +29,14 @@ const Index = () => {
       return;
     }
 
+    const upiString = generateUPIQRString({
+      payeeName: RESTAURANT_NAME,
+      payeeVPA: RESTAURANT_VPA,
+      amount: calculateTotal(),
+      transactionNote: `Bill: ₹${billAmount} + Tip: ₹${tipAmount}`
+    });
+
+    setQRCodeData(upiString);
     setShowQR(true);
     toast({
       title: "QR Code Generated",
@@ -97,7 +111,11 @@ const Index = () => {
             {/* QR Code Section */}
             {showQR && (
               <div className="flex flex-col items-center justify-center space-y-4 p-4 border-2 border-dashed border-gray-300 rounded-lg">
-                <QrCode className="w-48 h-48 text-primary" />
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeData)}`}
+                  alt="UPI QR Code"
+                  className="w-48 h-48"
+                />
                 <p className="text-sm text-gray-500">Scan this QR code to pay</p>
               </div>
             )}
