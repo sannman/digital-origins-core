@@ -1,12 +1,12 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { IndianRupee, Receipt, QrCode, ThumbsUp } from "lucide-react";
+import { IndianRupee, Receipt, ThumbsUp } from "lucide-react";
 import { generateUPIQRString } from "@/utils/upiQRGenerator";
+import { SettingsDialog } from "@/components/SettingsDialog";
 
 const Index = () => {
   const [billAmount, setBillAmount] = useState<number>(0);
@@ -14,10 +14,21 @@ const Index = () => {
   const [waiterName, setWaiterName] = useState<string>("");
   const [showQR, setShowQR] = useState<boolean>(false);
   const [qrCodeData, setQRCodeData] = useState<string>("");
+  
+  // Restaurant's UPI details with local storage persistence
+  const [restaurantName, setRestaurantName] = useState<string>(
+    localStorage.getItem('restaurantName') || "Sample Restaurant"
+  );
+  const [restaurantVPA, setRestaurantVPA] = useState<string>(
+    localStorage.getItem('restaurantVPA') || "restaurant@upi"
+  );
 
-  // Restaurant's UPI details
-  const RESTAURANT_VPA = "restaurant@upi"; // Replace with actual UPI ID
-  const RESTAURANT_NAME = "Sample Restaurant"; // Replace with actual name
+  const handleUpdateSettings = (name: string, upiId: string) => {
+    setRestaurantName(name);
+    setRestaurantVPA(upiId);
+    localStorage.setItem('restaurantName', name);
+    localStorage.setItem('restaurantVPA', upiId);
+  };
 
   const handleGenerateQR = () => {
     if (billAmount <= 0) {
@@ -30,8 +41,8 @@ const Index = () => {
     }
 
     const upiString = generateUPIQRString({
-      payeeName: RESTAURANT_NAME,
-      payeeVPA: RESTAURANT_VPA,
+      payeeName: restaurantName,
+      payeeVPA: restaurantVPA,
       amount: calculateTotal(),
       transactionNote: `Bill: ₹${billAmount} + Tip: ₹${tipAmount}`
     });
@@ -51,7 +62,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto">
-        <Card className="shadow-lg">
+        <Card className="shadow-lg relative">
+          <SettingsDialog 
+            restaurantName={restaurantName}
+            upiId={restaurantVPA}
+            onUpdate={handleUpdateSettings}
+          />
           <CardHeader className="text-center bg-primary text-primary-foreground rounded-t-lg">
             <CardTitle className="text-2xl font-bold flex items-center justify-center gap-2">
               <Receipt className="h-6 w-6" />
