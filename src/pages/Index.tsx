@@ -5,15 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { IndianRupee, Receipt, CreditCard, ThumbsUp } from "lucide-react";
+import { IndianRupee, Receipt, QrCode, ThumbsUp } from "lucide-react";
 
 const Index = () => {
   const [billAmount, setBillAmount] = useState<number>(0);
   const [tipAmount, setTipAmount] = useState<number>(0);
   const [waiterName, setWaiterName] = useState<string>("");
-  const [upiId, setUpiId] = useState<string>("");
+  const [showQR, setShowQR] = useState<boolean>(false);
 
-  const handlePayment = () => {
+  const handleGenerateQR = () => {
     if (billAmount <= 0) {
       toast({
         title: "Invalid Amount",
@@ -23,10 +23,10 @@ const Index = () => {
       return;
     }
 
-    // In a real app, this would connect to payment processing
+    setShowQR(true);
     toast({
-      title: "Payment Initiated",
-      description: `Processing payment of ₹${billAmount + tipAmount}`,
+      title: "QR Code Generated",
+      description: `Scan to pay ₹${calculateTotal()}`,
     });
   };
 
@@ -44,7 +44,7 @@ const Index = () => {
               Restaurant Payment
             </CardTitle>
             <CardDescription className="text-primary-foreground/90">
-              Pay your bill and add tips for service
+              Scan QR code to pay bill and tips
             </CardDescription>
           </CardHeader>
           
@@ -94,22 +94,13 @@ const Index = () => {
               </div>
             </div>
             
-            {/* Payment Method Section */}
-            <div className="space-y-3 pt-2">
-              <h3 className="text-lg font-medium flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
-                Payment Method
-              </h3>
-              <div className="space-y-2">
-                <Label htmlFor="upiId">UPI ID</Label>
-                <Input 
-                  id="upiId" 
-                  placeholder="Enter UPI ID (e.g. name@upi)" 
-                  value={upiId} 
-                  onChange={(e) => setUpiId(e.target.value)}
-                />
+            {/* QR Code Section */}
+            {showQR && (
+              <div className="flex flex-col items-center justify-center space-y-4 p-4 border-2 border-dashed border-gray-300 rounded-lg">
+                <QrCode className="w-48 h-48 text-primary" />
+                <p className="text-sm text-gray-500">Scan this QR code to pay</p>
               </div>
-            </div>
+            )}
           </CardContent>
           
           <CardFooter className="flex flex-col space-y-4">
@@ -120,10 +111,10 @@ const Index = () => {
             <Button 
               className="w-full" 
               size="lg"
-              onClick={handlePayment}
+              onClick={handleGenerateQR}
               disabled={billAmount <= 0}
             >
-              Pay Now
+              {showQR ? 'Update QR Code' : 'Generate QR Code'}
             </Button>
           </CardFooter>
         </Card>
