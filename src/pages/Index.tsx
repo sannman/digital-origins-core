@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function Index() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
@@ -15,7 +15,9 @@ export default function Index() {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-          {user ? (
+          {loading ? (
+            <div>Loading...</div>
+          ) : user ? (
             <Button asChild size="lg">
               <Link to="/dashboard">Go to Dashboard</Link>
             </Button>
