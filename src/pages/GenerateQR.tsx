@@ -26,7 +26,7 @@ export default function GenerateQR() {
     setGenerating(true);
     
     try {
-      // Generate QR code data URL
+      // Generate QR code data URL using our utility function
       const qrCodeUrl = await generateQRCode({
         amount: Number(amount),
         description: description || 'Restaurant payment',
