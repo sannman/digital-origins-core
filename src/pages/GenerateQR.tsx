@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/sonner';
 import { generateQRCode } from '@/utils/upiQRGenerator';
+import { AlertCircle } from 'lucide-react';
 
 export default function GenerateQR() {
   const navigate = useNavigate();
@@ -16,8 +17,27 @@ export default function GenerateQR() {
   const [description, setDescription] = useState('');
   const [qrData, setQrData] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [paymentSettings, setPaymentSettings] = useState({
+    restaurantName: '',
+    upiId: '',
+  });
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+
+  // Load payment settings from localStorage
+  useEffect(() => {
+    const restaurantName = localStorage.getItem('restaurantName') || '';
+    const upiId = localStorage.getItem('upiId') || '';
+    
+    setPaymentSettings({ restaurantName, upiId });
+    setSettingsLoaded(true);
+  }, []);
 
   const handleGenerate = async () => {
+    if (!paymentSettings.restaurantName || !paymentSettings.upiId) {
+      toast.error("Please configure your payment settings first");
+      return;
+    }
+
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
       toast.error("Please enter a valid amount");
       return;
@@ -28,6 +48,8 @@ export default function GenerateQR() {
     try {
       // Generate QR code data URL using our utility function
       const qrCodeUrl = await generateQRCode({
+        payeeName: paymentSettings.restaurantName,
+        payeeVPA: paymentSettings.upiId,
         amount: Number(amount),
         description: description || 'Restaurant payment',
       });
@@ -40,6 +62,10 @@ export default function GenerateQR() {
     } finally {
       setGenerating(false);
     }
+  };
+
+  const handleSetupPayment = () => {
+    navigate("/payment-settings");
   };
 
   return (
@@ -61,6 +87,23 @@ export default function GenerateQR() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {settingsLoaded && (!paymentSettings.restaurantName || !paymentSettings.upiId) && (
+              <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-md p-3 flex items-start space-x-2 mb-4">
+                <AlertCircle className="h-5 w-5 mt-0.5" />
+                <div>
+                  <p className="font-medium">Payment settings not configured</p>
+                  <p className="text-sm">You need to set up your payment details first.</p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-2 text-xs h-8" 
+                    onClick={handleSetupPayment}
+                  >
+                    Setup Payment Details
+                  </Button>
+                </div>
+              </div>
+            )}
+            
             <div className="space-y-2">
               <Label htmlFor="amount">Amount (₹)</Label>
               <Input
@@ -81,9 +124,18 @@ export default function GenerateQR() {
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
+
+            {settingsLoaded && paymentSettings.upiId && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Payment will be received at: <span className="font-medium">{paymentSettings.upiId}</span>
+              </p>
+            )}
           </CardContent>
           <CardFooter>
-            <Button onClick={handleGenerate} disabled={generating}>
+            <Button 
+              onClick={handleGenerate} 
+              disabled={generating || !paymentSettings.upiId}
+            >
               {generating ? "Generating..." : "Generate QR Code"}
             </Button>
           </CardFooter>
@@ -109,6 +161,9 @@ export default function GenerateQR() {
                   {description}
                 </p>
               )}
+              <p className="mt-2 text-xs text-muted-foreground text-center">
+                Pay to: {paymentSettings.restaurantName} ({paymentSettings.upiId})
+              </p>
             </CardContent>
             <CardFooter className="flex justify-center">
               <Button 

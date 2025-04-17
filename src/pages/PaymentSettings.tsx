@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,21 +15,39 @@ export default function PaymentSettings() {
   const [upiId, setUpiId] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
+  // Load saved values from localStorage on component mount
+  useEffect(() => {
+    const savedName = localStorage.getItem('restaurantName');
+    const savedUpiId = localStorage.getItem('upiId');
+    
+    if (savedName) setRestaurantName(savedName);
+    if (savedUpiId) setUpiId(savedUpiId);
+  }, []);
+
   const handleSave = async () => {
     if (!restaurantName.trim() || !upiId.trim()) {
       toast.error("Please fill in all fields");
       return;
     }
 
+    if (!upiId.includes('@')) {
+      toast.error("Please enter a valid UPI ID (e.g. yourname@upi)");
+      return;
+    }
+
     setIsSaving(true);
     
     try {
+      // Save to localStorage
+      localStorage.setItem('restaurantName', restaurantName);
+      localStorage.setItem('upiId', upiId);
+
       // In a real app, you would save this data to Supabase
-      // For now we'll just simulate success
+      // For now we'll just use localStorage
       setTimeout(() => {
         toast.success("Payment settings saved successfully");
         setIsSaving(false);
-      }, 1000);
+      }, 500);
     } catch (error) {
       console.error("Error saving payment settings:", error);
       toast.error("Failed to save settings");
