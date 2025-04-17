@@ -9,6 +9,8 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import PaymentSettings from "./pages/PaymentSettings";
+import GenerateQR from "./pages/GenerateQR";
+import Transactions from "./pages/Transactions";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -35,6 +37,22 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <PaymentSettings />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/generate-qr" 
+            element={
+              <ProtectedRoute>
+                <GenerateQR />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/transactions" 
+            element={
+              <ProtectedRoute>
+                <Transactions />
               </ProtectedRoute>
             } 
           />
